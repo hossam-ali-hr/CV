@@ -12,6 +12,7 @@
 - [Workforce and Manpower Dashboard](https://hossam-ali-hr.github.io/CV/en/projects/workforce-dashboard.html)
 
 ## Practical guides
+- [Why Every Company Needs an AI Usage Policy](https://hossam-ali-hr.github.io/CV/en/insights/why-every-company-needs-an-ai-usage-policy.html)
 - [How to Design an HR Document Expiry System](https://hossam-ali-hr.github.io/CV/en/insights/how-to-design-hr-document-expiry-system.html)
 - [What Makes an HR Dashboard Useful?](https://hossam-ali-hr.github.io/CV/en/insights/what-makes-an-hr-dashboard-useful.html)
 - [Google Apps Script vs n8n for HR Automation](https://hossam-ali-hr.github.io/CV/en/insights/apps-script-vs-n8n-for-hr-automation.html)
