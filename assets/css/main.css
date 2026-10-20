@@ -629,3 +629,22 @@ html[lang="ar"] .card-kicker{letter-spacing:.03em;font-size:.85rem}
     transition-duration:.01ms!important;
   }
 }
+
+/* Profile hierarchy and quick navigation */
+.hero h1.profile-title{font-size:clamp(2.8rem,4.5vw,4.8rem);max-width:22ch;margin-block-end:1.2rem}
+.profile-title span{display:block;font-family:var(--font-body);font-size:clamp(1.15rem,1.6vw,1.5rem);font-weight:600;line-height:1.5;color:var(--accent-bright);margin-block-start:.8rem}
+.hero-promise{font-family:var(--font-display);font-size:clamp(1.5rem,2vw,2rem);line-height:1.4;color:var(--on-deep);margin-block:0 1rem}
+.profile-jump{display:flex;flex-wrap:wrap;gap:.4rem 1.5rem;padding-block:1.1rem}
+.profile-jump a{font-size:.9rem;font-weight:700;padding-block:.35rem;text-decoration:none}
+.profile-jump a:hover{text-decoration:underline}
+@media(max-width:880px){
+  .hero-grid>*:first-child{order:1}
+  .hero-grid>.portrait-frame{order:2}
+  .hero h1.profile-title{font-size:clamp(2.5rem,8vw,3.6rem)}
+  .hero-grid{gap:2rem}
+  .profile-jump{gap:.3rem 1.2rem}
+  /* Navigation remains available if JavaScript is unavailable. */
+  html:not(.js-nav) .menu-button{display:none}
+  html:not(.js-nav) .nav-links{display:flex;position:static;box-shadow:none;border:0;flex-direction:row;flex-wrap:wrap;padding:0;font-size:.8rem}
+  html:not(.js-nav) .nav{flex-wrap:wrap}
+}
