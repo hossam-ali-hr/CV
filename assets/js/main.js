@@ -6,6 +6,7 @@
   var menuButton = document.querySelector('[data-menu-button]');
   var nav = document.querySelector('[data-nav]');
   if (menuButton && nav) {
+    document.documentElement.classList.add('js-nav');
     var setMenuState = function (open, moveFocus) {
       nav.classList.toggle('open', open);
       menuButton.setAttribute('aria-expanded', String(open));
