@@ -76,7 +76,7 @@ r=calculate(salary);near(r.travel.monthSalary.calendarDays,15);near(r.travel.mon
 r=calculate({...salary,monthSalaryUnpaidDays:2,monthSalaryPaid:500});near(r.travel.monthSalary.paidDays,13);near(r.travel.monthSalary.amount,2600);near(r.travel.monthSalary.remaining,2100);near(r.travel.remainingPay,calculate({...salary,includeMonthSalary:false}).travel.remainingPay+2100);
 r=calculate({...salary,leaveStart:'2026-12-01'});near(r.travel.monthSalary.paidDays,0);near(r.travel.monthSalary.amount,0);
 r=calculate({...salary,serviceStart:'2026-12-10',lastReturn:'2026-12-10'});near(r.travel.monthSalary.calendarDays,6);near(r.travel.monthSalary.amount,1200);
-r=calculate({...salary,leaveStart:'2026-02-16',returnDate:'2026-03-01',lastReturn:'2025-02-16',payBasis:'calendar'});near(r.travel.monthSalary.divisor,28);near(r.travel.monthSalary.amount,6000/28*15);
+r=calculate({...salary,leaveStart:'2026-02-16',returnDate:'2026-03-01',lastReturn:'2025-02-16',payBasis:'calendar'});near(r.travel.monthSalary.divisor,28);near(r.travel.monthSalary.amount,3214.29);
 r=calculate({...salary,calculationMode:'eos',asOf:'2026-12-15'});assert.equal(r.plan,null);near(r.currentMonthSalary.paidDays,15);near(r.currentMonthSalary.amount,3000);near(r.total,calculate({...salary,calculationMode:'eos',asOf:'2026-12-15',includeMonthSalary:false}).total+3000);
 r=calculate({...salary,calculationMode:'eos',asOf:'2026-12-31',payBasis:'calendar'});near(r.currentMonthSalary.calendarDays,31);near(r.currentMonthSalary.amount,6000);assert.equal(r.currentMonthSalary.month,'2026-12');
 // Two trips in the same month never repay salary days or earlier leave days.
@@ -88,6 +88,32 @@ r=calculate({...salary,includeMonthSalary:false,monthSalaryUnpaidDays:999,monthS
 r=calculate({...salary,calculationMode:'eos',asOf:'2026-12-15',ticketAnnualDays:-1});near(r.currentMonthSalary.paidDays,15);
 // Inactive EOS-only controls cannot block a leave calculation.
 assert.doesNotThrow(()=>calculate({...salary,eosDays:'',leavePay:'custom',customLeaveWage:1}));
+// EOS is a separate policy: annual days, cycle start and allowances do not change gratuity.
+const exit={...input,calculationMode:'eos',serviceStart:'2021-01-01',asOf:'2026-12-31',lastReturn:'2026-01-01',basic:3000};
+r=calculate(exit);const exitBase=r;near(r.serviceDays,2191);near(r.years,2191/365);near(r.eos,3000/30*21*2191/365);near(r.earned,30);
+let changed=calculate({...exit,after5:28});near(changed.eos,r.eos);near(changed.earned,28);assert.ok(changed.leaveValue<r.leaveValue);
+changed=calculate({...exit,eosDays:30});near(changed.leaveValue,r.leaveValue);near(changed.eos,r.eos*30/21);
+changed=calculate({...exit,lastReturn:'2026-07-01'});near(changed.eos,r.eos);assert.ok(changed.leaveValue<r.leaveValue);
+changed=calculate({...exit,housing:5000,transport:3000,other:1000});near(changed.eos,r.eos);near(changed.leaveValue,r.leaveValue);
+// A final day is paid, accrued and included in service; exactly 365 days qualifies.
+r=calculate({...exit,serviceStart:'2025-01-01',asOf:'2025-12-31',lastReturn:'2025-01-01'});near(r.serviceDays,365);near(r.years,1);near(r.eos,2100);near(r.earned,21);assert.equal(r.through,'2026-01-01');assert.equal(r.eligible,true);
+r=calculate({...exit,serviceStart:'2025-01-01',asOf:'2025-12-30',lastReturn:'2025-01-01'});near(r.serviceDays,364);near(r.eos,0);assert.equal(r.eligible,false);
+assert.throws(()=>calculate({...exit,lastReturn:'2027-01-01'}));
+// Complete salary months are one monthly amount, not 31/30 or 28/30.
+for(const end of ['2026-01-31','2026-02-28','2024-02-29','2026-04-30']){
+ const full={...salary,calculationMode:'eos',asOf:end,lastReturn:'2023-01-01'};
+ r=calculate(full);near(r.currentMonthSalary.amount,6000);near(r.currentMonthSalary.payrollDays,30);assert.equal(r.currentMonthSalary.fullMonth,true);
+ r=calculate({...full,monthSalaryUnpaidDays:1});near(r.currentMonthSalary.amount,5800);
+ r=calculate({...full,payBasis:'calendar'});near(r.currentMonthSalary.amount,6000);
+ r=calculate({...full,monthSalaryPaid:6000});near(r.currentMonthSalary.remaining,0);
+}
+r=calculate({...salary,monthSalaryPaid:3000});near(r.travel.monthSalary.remaining,0);
+r=calculate({...salary,leaveStart:'2026-02-16',returnDate:'2026-03-01',lastReturn:'2025-02-16',payBasis:'calendar',monthSalaryPaid:3214.29});near(r.travel.monthSalary.remaining,0);
+// Hidden/inactive settings cannot invalidate a different calculation mode.
+assert.doesNotThrow(()=>calculate({...exit,ticketMode:'cash',ticketValue:0,ticketUsedBefore:-5,ticketAnnualDays:-5,encashTicketOnExit:false,splitLeave:true,monthSalaryPaid2:-1}));
+assert.throws(()=>calculate({...exit,ticketMode:'cash',ticketValue:0,encashTicketOnExit:true}));
+assert.throws(()=>calculate({...salary,basic:0}),e=>e.field==='basic');
+assert.throws(()=>calculate({...salary,leaveStart:'2019-01-01'}),e=>e.field==='leaveStart');
 for(const file of ['entitlements-core.js','calculator.js'])assert.doesNotMatch(fs.readFileSync(path.join(__dirname,'../assets/js',file),'utf8'),/\b(localStorage|sessionStorage|indexedDB|XMLHttpRequest|WebSocket|sendBeacon|FileReader)\b|\bfetch\s*\(/);
 for(const lang of ['en','ar']){const src=fs.readFileSync(path.join(__dirname,`../${lang}/tools/leave-eos-calculator.html`),'utf8');assert.doesNotMatch(src,/<input[^>]*type=["']file["']/i);assert.match(src,/connect-src 'none'/);assert.match(src,/form-action 'none'/);assert.doesNotMatch(src,/(?:employee_id|employee_name|company_code|Import_Template|backupImport)/);}
-console.log('PASS: departure-month salary, absence/prior pay, EOS inclusive cutoff, split salary deduplication, covered housing; split plans, cash/company tickets, cent caps and cross-period housing; last-return cycle independent of service; company pay policies, holiday cash/credit/dates, paid/unpaid allocation, calendar divisors, advances, invalid inputs and privacy.');
+console.log('PASS: independent EOS/annual policies, inclusive final service day, 365-day EOS, full-month salary, inactive fields; departure-month salary, absence/prior pay, EOS inclusive cutoff, split salary deduplication, covered housing; split plans, cash/company tickets, cent caps and cross-period housing; last-return cycle independent of service; company pay policies, holiday cash/credit/dates, paid/unpaid allocation, calendar divisors, advances, invalid inputs and privacy.');
