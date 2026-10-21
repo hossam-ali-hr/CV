@@ -648,3 +648,7 @@ html[lang="ar"] .card-kicker{letter-spacing:.03em;font-size:.85rem}
   html:not(.js-nav) .nav-links{display:flex;position:static;box-shadow:none;border:0;flex-direction:row;flex-wrap:wrap;padding:0;font-size:.8rem}
   html:not(.js-nav) .nav{flex-wrap:wrap}
 }
+
+/* Keep the expanded seven-link navigation readable on medium screens. */
+@media (min-width:881px){.nav-links{gap:1rem}.nav-links a{white-space:nowrap}}
+@media (max-width:1100px) and (min-width:881px){.nav{gap:.7rem}.nav-links{gap:.7rem}.nav-links a{font-size:.85rem}.brand{font-size:1.1rem}}
