@@ -71,3 +71,25 @@ Run `node scripts/check_calculator.cjs` for calculation and privacy regression
 examples, and `python scripts/check_site.py` for site metadata and local links.
 The page documents date boundaries, policy assumptions and excluded settlement
 items. The housing-advance preview is separate from the termination estimate.
+
+### Calculator 2.0: company payment policies
+
+The default leave cycle now requires `lastReturn` and never silently falls back
+to hire date. Explicit first-leave and verified-opening-balance modes are also
+available. Hire/continuous-service start still controls EOS and the five-year
+annual-leave band. For an upcoming leave, the leave accrual cutoff is departure;
+EOS continues to use its separately selected calculation date.
+
+Company options cover annual rates and additional days, accrual conventions,
+unused-leave wage basis, paid balance versus full approved leave, independent
+housing/transport/other allowance rules, and monthly cash prorating. Outstanding
+holiday cash and compensatory credit are mutually exclusive; compensatory leave
+is not automatically encashed. Confirmed holiday dates within travel are entered
+manually, paid at full cash wage once, and either excluded from the leave debit
+or balanced by replacement credits. Worked-holiday cash amounts/factors must be
+approved independently; this is not an automatic statutory overtime calculation.
+
+Housing advances support a full next month or month start to the day before
+return. Covered housing is removed from both annual-leave and holiday pay;
+already-paid advances are manually deducted from the remaining estimate. No
+employee data, policy settings or payment records are persisted.
