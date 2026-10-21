@@ -57,7 +57,7 @@ new social sharing image consistent with the editorial design.
 ## Public HR tools
 
 `/ar/tools/` and `/en/tools/` list the public HR calculators. The first tool is
-`tools/leave-eos-calculator.html`, adapted from the Wifaq leave/EOS prototype for
+`tools/leave-eos-calculator.html`, adapted from the HR leave/EOS prototype for
 manual, anonymous calculations. No source ZIP, CSV templates, employee-management
 screens or saved-record functions are published with the tool.
 
@@ -113,3 +113,24 @@ manual input. Company-provided tickets show an estimated per-ticket cost outside
 employee cash totals, for either or both planned trips. EOS includes no ticket
 cash unless the visitor explicitly selects an approved cash payout. These are
 contract/policy inputs, not a determination of statutory repatriation rights.
+
+### Calculator 3.0: simpler flow and printable settlement
+
+Choose leave or EOS first; only that settlement is displayed. The initial form
+shows the essentials. Salary allowances, balance adjustments, tickets, holidays
+and company policies use optional disclosure panels with short field and
+selected-option explanations. The generic HR calculator has no company branding.
+
+`includeMonthSalary` adds basic salary and all entered monthly cash allowances
+for calendar payroll days from month start (or hire, if later) up to the day
+before leave departure. A 16 December departure includes 1–15 December. For EOS,
+`asOf` is the final working day and is included. The selected 30-day or actual
+month divisor applies. Optional unpaid absence days reduce salary proportionally;
+`monthSalaryPaid` deducts cash already paid for these same days. The second leave
+period has separate adjustments. Already counted salary dates, prior planned
+leave intervals and housing already covered by an advance cannot be paid twice.
+
+Results show a compact payment breakdown and an optional calculation disclosure.
+Printing / saving PDF uses a separate report with dates, salary, itemized amounts,
+prior-payment deductions and company tickets outside cash totals. Changing any
+input clears both the result and the print report. No input is uploaded or saved.
