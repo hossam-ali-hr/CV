@@ -93,3 +93,23 @@ Housing advances support a full next month or month start to the day before
 return. Covered housing is removed from both annual-leave and holiday pay;
 already-paid advances are manually deducted from the remaining estimate. No
 employee data, policy settings or payment records are persisted.
+
+### Calculator 2.1: tickets and split annual leave
+
+Up to two non-overlapping leave periods share the same balance. The second
+period starts with the remainder after the first, with optional prorated accrual
+between departure dates. The UI enables ongoing accrual by default; uncheck it
+for a fixed annual-leave allocation. No service or cycle-start date is reset.
+Each period has separate dates, holiday dates, fixed net amounts and prior
+housing payments. Full-month housing advances also cover later leave dates in
+the same month, preventing duplicate allowance payments across periods.
+
+Cash tickets can be prorated by paid **annual** leave days (excluding compensatory
+and holiday days), allocated to one selected period, or explicitly provided per
+trip. The automatic denominator is the annual leave rate at the first departure
+plus approved extra days, with a manual override. Remaining-allocation caps and
+cent rounding prevent paying the cash ticket budget twice; previous use is a
+manual input. Company-provided tickets show an estimated per-ticket cost outside
+employee cash totals, for either or both planned trips. EOS includes no ticket
+cash unless the visitor explicitly selects an approved cash payout. These are
+contract/policy inputs, not a determination of statutory repatriation rights.
