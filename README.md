@@ -53,3 +53,21 @@ SEO metadata, structured data, sitemap, robots, llms.txt or the bilingual struct
 The reviewed package also includes corrected capability-strip CSS, page-specific x-default hreflang,
 multilingual sitemap alternates, richer social metadata, improved mobile-menu announcements and a
 new social sharing image consistent with the editorial design.
+
+## Public HR tools
+
+`/ar/tools/` and `/en/tools/` list the public HR calculators. The first tool is
+`tools/leave-eos-calculator.html`, adapted from the Wifaq leave/EOS prototype for
+manual, anonymous calculations. No source ZIP, CSV templates, employee-management
+screens or saved-record functions are published with the tool.
+
+The calculator uses `assets/js/entitlements-core.js` for pure arithmetic and
+`assets/js/calculator.js` for the form. It does not read or write browser storage,
+accept files, submit forms or send calculation inputs over the network. Its page
+CSP also blocks connections and form submission. Printing is initiated by the
+visitor. Inputs are cleared on reset and page exit; no payment ledger is kept.
+
+Run `node scripts/check_calculator.cjs` for calculation and privacy regression
+examples, and `python scripts/check_site.py` for site metadata and local links.
+The page documents date boundaries, policy assumptions and excluded settlement
+items. The housing-advance preview is separate from the termination estimate.

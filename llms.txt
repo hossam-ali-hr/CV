@@ -24,3 +24,8 @@
 - Location: Doha, Qatar
 
 The site does not publish confidential company or employee data.
+
+## HR tools
+- [Qatar leave and EOS calculator](https://hossam-ali-hr.github.io/CV/en/tools/leave-eos-calculator.html)
+- [حاسبة الإجازات ونهاية الخدمة](https://hossam-ali-hr.github.io/CV/ar/tools/leave-eos-calculator.html)
+Manual browser-only estimates. No file uploads, employee database or saved inputs.
