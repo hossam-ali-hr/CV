@@ -70,6 +70,24 @@ r=calculate({...input,ticketMode:'cash',ticketValue:1200});near(r.total,15600);
 r=calculate({...input,ticketMode:'cash',ticketValue:1200,ticketUsedBefore:200,encashTicketOnExit:true});near(r.total,16600);
 for(const edit of [{leaveStart2:'2026-01-15'},{returnDate2:'2026-06-30'},{leaveStart2:''},{holidayDates2:'2026-01-10'},{ticketUsedBefore:1201},{ticketMode:'cash',ticketValue:0}])assert.throws(()=>calculate({...split,...edit}));
 assert.throws(()=>calculate({...travel,ticketMode:'cash',ticketValue:1200,ticketAllocation:'second'}));
+// Current-month salary is separate from leave and counts only eligible payroll dates.
+const salary={...input,calculationMode:'leave',leaveStart:'2026-12-16',returnDate:'2027-01-01',lastReturn:'2025-12-16',basic:3000,housing:1800,transport:900,other:300,includeMonthSalary:true};
+r=calculate(salary);near(r.travel.monthSalary.calendarDays,15);near(r.travel.monthSalary.paidDays,15);near(r.travel.monthSalary.amount,3000);assert.equal(r.travel.monthSalary.from,'2026-12-01');assert.equal(r.travel.monthSalary.to,'2026-12-15');near(r.travel.remainingPay,calculate({...salary,includeMonthSalary:false}).travel.remainingPay+3000);
+r=calculate({...salary,monthSalaryUnpaidDays:2,monthSalaryPaid:500});near(r.travel.monthSalary.paidDays,13);near(r.travel.monthSalary.amount,2600);near(r.travel.monthSalary.remaining,2100);near(r.travel.remainingPay,calculate({...salary,includeMonthSalary:false}).travel.remainingPay+2100);
+r=calculate({...salary,leaveStart:'2026-12-01'});near(r.travel.monthSalary.paidDays,0);near(r.travel.monthSalary.amount,0);
+r=calculate({...salary,serviceStart:'2026-12-10',lastReturn:'2026-12-10'});near(r.travel.monthSalary.calendarDays,6);near(r.travel.monthSalary.amount,1200);
+r=calculate({...salary,leaveStart:'2026-02-16',returnDate:'2026-03-01',lastReturn:'2025-02-16',payBasis:'calendar'});near(r.travel.monthSalary.divisor,28);near(r.travel.monthSalary.amount,6000/28*15);
+r=calculate({...salary,calculationMode:'eos',asOf:'2026-12-15'});assert.equal(r.plan,null);near(r.currentMonthSalary.paidDays,15);near(r.currentMonthSalary.amount,3000);near(r.total,calculate({...salary,calculationMode:'eos',asOf:'2026-12-15',includeMonthSalary:false}).total+3000);
+r=calculate({...salary,calculationMode:'eos',asOf:'2026-12-31',payBasis:'calendar'});near(r.currentMonthSalary.calendarDays,31);near(r.currentMonthSalary.amount,6000);assert.equal(r.currentMonthSalary.month,'2026-12');
+// Two trips in the same month never repay salary days or earlier leave days.
+r=calculate({...salary,returnDate:'2026-12-21',splitLeave:true,leaveStart2:'2026-12-26',returnDate2:'2026-12-31'});near(r.travels[0].monthSalary.calendarDays,15);near(r.travels[1].monthSalary.calendarDays,5);near(r.travels[1].monthSalary.excludedDays,20);near(r.travels[1].monthSalary.amount,1000);
+// A prior full-month housing advance also covers working days before trip two.
+r=calculate({...salary,leaveStart:'2026-01-20',returnDate:'2026-02-16',lastReturn:'2025-01-20',housingAdvance:true,splitLeave:true,leaveStart2:'2026-02-20',returnDate2:'2026-02-23'});near(r.travels[1].monthSalary.calendarDays,4);near(r.travels[1].monthSalary.housingExcluded,240);near(r.travels[1].monthSalary.amount,560);
+for(const edit of [{monthSalaryUnpaidDays:16},{monthSalaryPaid:3001},{monthSalaryUnpaidDays:-1},{monthSalaryPaid:-1}])assert.throws(()=>calculate({...salary,...edit}));
+r=calculate({...salary,includeMonthSalary:false,monthSalaryUnpaidDays:999,monthSalaryPaid:999999999});assert.equal(r.travel.monthSalary,null);
+r=calculate({...salary,calculationMode:'eos',asOf:'2026-12-15',ticketAnnualDays:-1});near(r.currentMonthSalary.paidDays,15);
+// Inactive EOS-only controls cannot block a leave calculation.
+assert.doesNotThrow(()=>calculate({...salary,eosDays:'',leavePay:'custom',customLeaveWage:1}));
 for(const file of ['entitlements-core.js','calculator.js'])assert.doesNotMatch(fs.readFileSync(path.join(__dirname,'../assets/js',file),'utf8'),/\b(localStorage|sessionStorage|indexedDB|XMLHttpRequest|WebSocket|sendBeacon|FileReader)\b|\bfetch\s*\(/);
 for(const lang of ['en','ar']){const src=fs.readFileSync(path.join(__dirname,`../${lang}/tools/leave-eos-calculator.html`),'utf8');assert.doesNotMatch(src,/<input[^>]*type=["']file["']/i);assert.match(src,/connect-src 'none'/);assert.match(src,/form-action 'none'/);assert.doesNotMatch(src,/(?:employee_id|employee_name|company_code|Import_Template|backupImport)/);}
-console.log('PASS: split plans, cash/company tickets, cent caps and cross-period housing; last-return cycle independent of service; company pay policies, holiday cash/credit/dates, paid/unpaid allocation, calendar divisors, advances, invalid inputs and privacy.');
+console.log('PASS: departure-month salary, absence/prior pay, EOS inclusive cutoff, split salary deduplication, covered housing; split plans, cash/company tickets, cent caps and cross-period housing; last-return cycle independent of service; company pay policies, holiday cash/credit/dates, paid/unpaid allocation, calendar divisors, advances, invalid inputs and privacy.');
