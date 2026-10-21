@@ -35,13 +35,21 @@
     const d={leaveBasis:'return',lastReturn:'',accrualMethod:'actual',leavePay:'basic',customLeaveWage:0,
       pendingHolidayDays:0,holidaySettlement:'review',holidayCashBasis:'approved',holidayCashAmount:0,holidayCashFactor:1,encashComp:false,
       payBasis:'30',paidLeaveMode:'balance',holidayDates:'',leaveHolidayMode:'exclude',housingMode:'paid',transportMode:'none',otherMode:'none',
-      housingFixed:0,transportFixed:0,otherFixed:0,housingAdvance:false,returnThreshold:15,advanceMethod:'full',housingPaid:0,...raw};
+      housingFixed:0,transportFixed:0,otherFixed:0,housingAdvance:false,returnThreshold:15,advanceMethod:'full',housingPaid:0,splitLeave:false,accrueBetweenPeriods:false,leaveStart2:'',returnDate2:'',holidayDates2:'',housingPaid2:0,housingFixed2:0,transportFixed2:0,otherFixed2:0,
+      ticketMode:'none',ticketValue:0,ticketAllocation:'prorated',ticketAnnualDays:0,ticketUsedBefore:0,ticketCompanyPeriod:'both',encashTicketOnExit:false,...raw};
     const fail=(field,code)=>{const e=new Error(code);e.field=field;e.code=code;throw e;};
     const choice=(key,values)=>{if(!values.includes(d[key]))fail(key,'choice');};
     for(const key of ['serviceStart','asOf'])if(!validDate(d[key]) || d[key]<'1900-01-01')fail(key,'date');
     if(d.asOf<d.serviceStart)fail('asOf','order');
     if(serviceYears(d.serviceStart,d.asOf)>80)fail('asOf','range');
-    const ranges={basic:[0,1e8],housing:[0,1e8],transport:[0,1e8],other:[0,1e8],under5:[21,366],after5:[28,366],eosDays:[21,366],extraDays:[0,366],opening:[-10000,10000],taken:[0,10000],adjustment:[-10000,10000],pendingHolidayDays:[0,366],customLeaveWage:[0,1e8],holidayCashAmount:[0,1e9],holidayCashFactor:[0,10],housingFixed:[0,1e8],transportFixed:[0,1e8],otherFixed:[0,1e8],housingPaid:[0,1e8],returnThreshold:[1,31]};
+    const ranges={basic:[0,1e8],housing:[0,1e8],transport:[0,1e8],other:[0,1e8],under5:[21,366],after5:[28,366],eosDays:[21,366],extraDays:[0,366],opening:[-10000,10000],taken:[0,10000],adjustment:[-10000,10000],pendingHolidayDays:[0,366],customLeaveWage:[0,1e8],holidayCashAmount:[0,1e9],holidayCashFactor:[0,10],housingFixed:[0,1e8],transportFixed:[0,1e8],otherFixed:[0,1e8],housingPaid:[0,1e8],returnThreshold:[1,31],housingPaid2:[0,1e8],housingFixed2:[0,1e8],transportFixed2:[0,1e8],otherFixed2:[0,1e8],ticketValue:[0,1e8],ticketAnnualDays:[0,732],ticketUsedBefore:[0,1e8]};
+    if(!d.travelEnabled)d.splitLeave=false;
+    if(!d.splitLeave){d.housingPaid2=0;d.housingFixed2=d.transportFixed2=d.otherFixed2=0;}
+    for(const name of ['housing','transport','other'])if(d[name+'Mode']!=='fixed')d[name+'Fixed2']=0;
+    if(!d.housingAdvance)d.housingPaid2=0;
+    if(d.ticketAllocation!=='prorated')d.ticketAnnualDays=0;
+    if(d.ticketMode==='none'){d.ticketValue=0;d.ticketUsedBefore=0;d.ticketAnnualDays=0;}
+    if(d.ticketMode==='company'){d.ticketUsedBefore=0;d.ticketAnnualDays=0;}
     // Ignore controls which cannot affect the selected scenario.
     if(d.housingMode!=='fixed')d.housingFixed=0;
     if(d.transportMode!=='fixed')d.transportFixed=0;
@@ -57,6 +65,9 @@
     }
     choice('leaveBasis',['return','hire','opening']);choice('accrualMethod',['actual','365','360']);
     choice('leavePay',['basic','housing','transport','gross','custom']);choice('holidaySettlement',['review','credit','cash']);choice('holidayCashBasis',['approved','basic','gross']);
+    choice('ticketMode',['none','cash','company']);
+    if(d.ticketMode==='cash'){choice('ticketAllocation',['prorated','first','second','perTrip']);if(d.ticketValue<=0)fail('ticketValue','ticketValue');}
+    if(d.ticketMode==='company')choice('ticketCompanyPeriod',['first','second','both']);
     let through=d.asOf,travelEnd=null;
     if(d.travelEnabled) {
       for(const key of ['leaveStart','returnDate'])if(!validDate(d[key]))fail(key,'date');
@@ -87,48 +98,97 @@
     const eos=eligible?d.basic/30*d.eosDays*years:0;
     const leaveValue=Math.max(0,annualBalance)*leaveWage/30;
     const compValue=d.encashComp?compDays*leaveWage/30:0;
-    let travel=null;
-    if(d.travelEnabled) {
+    const schedule=d.travelEnabled?[{start:d.leaveStart,end:travelEnd,suffix:''}]:[];
+    if(d.splitLeave) {
+      if(!validDate(d.leaveStart2))fail('leaveStart2','date');if(!validDate(d.returnDate2))fail('returnDate2','date');
+      if(d.returnDate2<=d.leaveStart2||days(d.leaveStart2,d.returnDate2)>366)fail('returnDate2','travelRange');
+      if(d.leaveStart2<d.returnDate)fail('leaveStart2','splitOverlap');
+      if(serviceYears(d.serviceStart,d.leaveStart2)>80)fail('leaveStart2','range');
+      schedule.push({start:d.leaveStart2,end:d.returnDate2,suffix:'2'});
+    }
+    if(d.travelEnabled&&d.ticketMode==='cash'&&d.ticketAllocation==='second'&&!d.splitLeave)fail('ticketAllocation','ticketSecond');
+    if(d.travelEnabled&&d.ticketMode==='company'&&d.ticketCompanyPeriod==='second'&&!d.splitLeave)fail('ticketCompanyPeriod','ticketSecond');
+    const annualRate=(serviceYears(d.serviceStart,through)<5?d.under5:d.after5)+d.extraDays;
+    const ticketDays=d.ticketAnnualDays||annualRate;
+    d.ticketValue=Math.round(d.ticketValue*100)/100;d.ticketUsedBefore=Math.round(d.ticketUsedBefore*100)/100;
+    if(d.ticketMode==='cash'&&d.ticketValue<=0)fail('ticketValue','ticketValue');
+    const ticketBudget=d.ticketValue*(d.ticketMode==='cash'&&d.ticketAllocation==='perTrip'?Math.max(1,schedule.length):1);
+    if(d.ticketMode==='cash'&&d.ticketUsedBefore>ticketBudget)fail('ticketUsedBefore','ticketUsed');
+    let ticketRemaining=Math.max(0,ticketBudget-d.ticketUsedBefore);
+    const coveredHousing=[];
+    function payment(period,available,index) {
+      const suffix=period.suffix,field=name=>name+suffix,start=period.start,end=period.end;
       choice('payBasis',['30','calendar']);choice('paidLeaveMode',['balance','full']);choice('leaveHolidayMode',['exclude','credit']);choice('advanceMethod',['full','untilReturn']);
       for(const key of ['housingMode','transportMode','otherMode'])choice(key,['none','paid','calendar','fixed']);
-      const dates=String(d.holidayDates||'').split(/[\s,،;]+/).filter(Boolean);
-      if(dates.length>366||dates.some(x=>!validDate(x)||x<d.leaveStart||x>=travelEnd))fail('holidayDates','holidayDates');
-      if(new Set(dates).size!==dates.length)fail('holidayDates','holidayDuplicate');
-      const holidays=new Set(dates),duration=days(d.leaveStart,travelEnd),holidayCount=holidays.size,requestedDays=duration-holidayCount;
-      const paidDays=d.paidLeaveMode==='full'?requestedDays:Math.min(requestedDays,Math.max(0,balance));
-      const unpaidDays=requestedDays-paidDays;
-      const monthStart=firstNextMonth(d.leaveStart),month=travelEnd.slice(0,7);
-      const advanceEligible=Boolean(d.housingAdvance)&&d.housing>0&&month===monthStart.slice(0,7)&&Number(travelEnd.slice(8))>=d.returnThreshold;
+      const dates=String(d[field('holidayDates')]||'').split(/[\s,،;]+/).filter(Boolean);
+      if(dates.length>366||dates.some(x=>!validDate(x)||x<start||x>=end))fail(field('holidayDates'),'holidayDates');
+      if(new Set(dates).size!==dates.length)fail(field('holidayDates'),'holidayDuplicate');
+      const holidays=new Set(dates),duration=days(start,end),holidayCount=holidays.size,requestedDays=duration-holidayCount;
+      const paidDays=d.paidLeaveMode==='full'?requestedDays:Math.min(requestedDays,Math.max(0,available));
+      const monthStart=firstNextMonth(start),month=end.slice(0,7);
+      const previouslyCovered=coveredHousing.some(c=>c.start<=monthStart&&c.end>=firstNextMonth(monthStart));
+      const advanceEligible=Boolean(d.housingAdvance)&&d.housing>0&&month===monthStart.slice(0,7)&&Number(end.slice(8))>=d.returnThreshold&&!previouslyCovered;
       if(advanceEligible&&d.housingMode==='fixed')fail('housingMode','housingFixed');
-      const advance=advanceEligible?(d.advanceMethod==='full'?d.housing:Array.from({length:days(monthStart,travelEnd)},(_,i)=>daily(d.housing,plusDays(monthStart,i),d.payBasis)).reduce((a,b)=>a+b,0)):0;
-      if(d.housingPaid>advance)fail('housingPaid','advancePaid');
+      const advance=advanceEligible?(d.advanceMethod==='full'?d.housing:Array.from({length:days(monthStart,end)},(_,i)=>daily(d.housing,plusDays(monthStart,i),d.payBasis)).reduce((a,b)=>a+b,0)):0;
+      if(d[field('housingPaid')]>advance)fail(field('housingPaid'),'advancePaid');
+      if(advanceEligible)coveredHousing.push({start:monthStart,end:d.advanceMethod==='full'?firstNextMonth(monthStart):end});
       let basicPay=0,housingPay=0,transportPay=0,otherPay=0,holidayPay=0,overlap=0,remaining=paidDays;
       const allowance=(name,date,weight)=>d[name+'Mode']==='calendar'?daily(d[name],date,d.payBasis):d[name+'Mode']==='paid'?daily(d[name],date,d.payBasis)*weight:0;
       for(let i=0;i<duration;i++) {
-        const date=plusDays(d.leaveStart,i),covered=advanceEligible&&date.slice(0,7)===month;
+        const date=plusDays(start,i),covered=coveredHousing.some(c=>date>=c.start&&date<c.end);
         if(holidays.has(date)) {
           holidayPay+=daily(gross,date,d.payBasis);
           if(covered){holidayPay-=daily(d.housing,date,d.payBasis);overlap++;}
         } else {
-          const weight=Math.min(1,Math.max(0,remaining));remaining-=weight;
-          basicPay+=daily(d.basic,date,d.payBasis)*weight;
+          const weight=Math.min(1,Math.max(0,remaining));remaining-=weight;basicPay+=daily(d.basic,date,d.payBasis)*weight;
           const h=allowance('housing',date,weight);
           if(covered){if(h>0)overlap+=d.housingMode==='paid'?weight:1;}else housingPay+=h;
           transportPay+=allowance('transport',date,weight);otherPay+=allowance('other',date,weight);
         }
       }
-      if(d.housingMode==='fixed')housingPay=d.housingFixed;
-      if(d.transportMode==='fixed')transportPay=d.transportFixed;
-      if(d.otherMode==='fixed')otherPay=d.otherFixed;
-      const creditedHolidayDays=d.leaveHolidayMode==='credit'?holidayCount:0;
-      const chargedDays=paidDays+creditedHolidayDays;
-      const returnBalance=balance-chargedDays+creditedHolidayDays;
-      const total=basicPay+housingPay+transportPay+otherPay+holidayPay+advance+holidayCash;
-      travel={duration,holidayCount,requestedDays,paidDays,unpaidDays,chargedDays,creditedHolidayDays,returnBalance,
-        basicPay,housingPay,transportPay,otherPay,holidayPay,holidayCash,overlap,advance,advanceEligible,month,housingPaid:d.housingPaid,total,remainingPay:total-d.housingPaid};
+      if(d.housingMode==='fixed'){
+        if(coveredHousing.some(c=>c.start<end&&c.end>start))fail(field('housingFixed'),'housingFixed');
+        housingPay=d[field('housingFixed')];
+      }
+      if(d.transportMode==='fixed')transportPay=d[field('transportFixed')];
+      if(d.otherMode==='fixed')otherPay=d[field('otherFixed')];
+      const creditedHolidayDays=d.leaveHolidayMode==='credit'?holidayCount:0,chargedDays=paidDays+creditedHolidayDays;
+      // Outstanding prior holiday cash is settled once, with the first planned period.
+      const periodHolidayCash=index===0?holidayCash:0;
+      const total=basicPay+housingPay+transportPay+otherPay+holidayPay+advance+periodHolidayCash;
+      return {index,start,end,duration,holidayCount,requestedDays,paidDays,unpaidDays:requestedDays-paidDays,chargedDays,creditedHolidayDays,returnBalance:available-paidDays,
+        basicPay,housingPay,transportPay,otherPay,holidayPay,holidayCash:periodHolidayCash,overlap,advance,advanceEligible,month,housingPaid:d[field('housingPaid')],total,remainingPay:total-d[field('housingPaid')]};
     }
-    return {inputs:d,years,eligible,from,through,earned,annualBalance,compDays,balance,leaveWage,eos,leaveValue,compValue,holidayCash,total:eos+leaveValue+compValue+holidayCash,travel};
+    let annualRemaining=annualBalance,compRemaining=compDays;
+    const travels=[];
+    for(let index=0;index<schedule.length;index++) {
+      const period=schedule[index];
+      const newAccrual=index>0&&d.accrueBetweenPeriods?accrual(d.serviceStart,schedule[index-1].start,period.start,d.under5,d.after5,d.extraDays,d.accrualMethod):0;
+      annualRemaining+=newAccrual;
+      const available=annualRemaining+compRemaining,v=payment(period,available,index);
+      const compUsed=Math.min(Math.max(0,compRemaining),Math.max(0,v.paidDays-Math.max(0,annualRemaining)));
+      const annualUsed=v.paidDays-compUsed;annualRemaining-=annualUsed;compRemaining-=compUsed;
+      let ticketAllocated=0,ticketCash=0,companyTicketCost=0,companyProvidesTicket=false;
+      if(d.ticketMode==='cash') {
+        let requested=d.ticketAllocation==='prorated'?d.ticketValue*annualUsed/ticketDays:d.ticketAllocation==='perTrip'?d.ticketValue:
+          (d.ticketAllocation==='first'&&index===0)||(d.ticketAllocation==='second'&&index===1)?d.ticketValue:0;
+        ticketAllocated=Math.max(0,Math.min(Math.round(requested*100),Math.round(ticketRemaining*100)))/100;ticketCash=ticketAllocated;ticketRemaining=Math.round((ticketRemaining-ticketAllocated)*100)/100;
+      } else if(d.ticketMode==='company') {
+        companyProvidesTicket=d.ticketCompanyPeriod==='both'||(d.ticketCompanyPeriod==='first'&&index===0)||(d.ticketCompanyPeriod==='second'&&index===1);
+        companyTicketCost=companyProvidesTicket?d.ticketValue:0;
+      }
+      v.newAccrual=newAccrual;v.balanceBefore=available;v.annualPaidDays=annualUsed;v.compUsed=compUsed;v.annualRemaining=annualRemaining;v.compRemaining=compRemaining;v.returnBalance=annualRemaining+compRemaining;
+      v.ticketCash=ticketCash;v.companyTicketCost=companyTicketCost;v.companyProvidesTicket=companyProvidesTicket;v.ticketAllocated=ticketAllocated;v.ticketShare=d.ticketAllocation==='prorated'?Math.min(1,annualUsed/ticketDays):null;
+      v.total+=ticketCash;v.remainingPay+=ticketCash;travels.push(v);
+    }
+    const ticketExitValue=d.ticketMode==='cash'&&d.encashTicketOnExit?Math.max(0,d.ticketValue-d.ticketUsedBefore):0;
+    const plan=travels.length?{periods:travels.length,days:travels.reduce((s,v)=>s+v.duration,0),paidDays:travels.reduce((s,v)=>s+v.paidDays,0),unpaidDays:travels.reduce((s,v)=>s+v.unpaidDays,0),
+      total:travels.reduce((s,v)=>s+v.total,0),remainingPay:travels.reduce((s,v)=>s+v.remainingPay,0),ticketCash:travels.reduce((s,v)=>s+v.ticketCash,0),companyTicketCost:travels.reduce((s,v)=>s+v.companyTicketCost,0),
+      newAccrual:travels.reduce((s,v)=>s+v.newAccrual,0),returnBalance:annualRemaining+compRemaining}:null;
+    const ticket={mode:d.ticketMode,value:d.ticketValue,days:ticketDays,budget:ticketBudget,usedBefore:d.ticketUsedBefore,remaining:ticketRemaining,exitValue:ticketExitValue};
+    return {inputs:d,years,eligible,from,through,earned,annualBalance,compDays,balance,leaveWage,eos,leaveValue,compValue,holidayCash,ticket,total:eos+leaveValue+compValue+holidayCash+ticketExitValue,travel:travels[0]||null,travels,plan};
   }
+
   const api={calculate,validDate,serviceYears,accrual};
   if(typeof module==='object'&&module.exports)module.exports=api;else root.WifaqCalculator=api;
 }(typeof globalThis!=='undefined'?globalThis:this));

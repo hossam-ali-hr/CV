@@ -8,3 +8,6 @@
 .calc-field textarea{inline-size:100%;min-height:96px;resize:vertical;padding:.7rem;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;font-size:1rem;color:var(--ink)}
 .calc-field textarea:focus{outline:2px solid var(--accent);outline-offset:2px}
 .calc-field textarea[aria-invalid=true]{border-color:#a12323}
+.calc-subpanel{min-inline-size:0;margin:1.25rem 0;padding:1rem;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper)}
+.calc-subpanel legend{font-weight:700;padding-inline:.4rem}
+.calc-period-summary{background:rgba(111,217,198,.08);border:1px solid var(--line-on-deep);border-radius:var(--radius);padding:.8rem;margin-block:1rem}
