@@ -22,8 +22,8 @@
 <link href="/CV/assets/css/main.css" rel="stylesheet"/>
 
 <meta name="twitter:image:alt" content="حسام علي — الموارد البشرية والتحليلات والأتمتة"/>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"حاسبة الإجازات ونهاية الخدمة في قطر","url":"https://hossam-ali-hr.github.io/CV/ar/tools/leave-eos-calculator.html","description":"حاسبة مبسطة للإجازات ونهاية الخدمة في قطر، مع راتب شهر المغادرة والتذكرة وتقسيم الإجازة وكشف تسوية قابل للطباعة، دون رفع بيانات.","applicationCategory":"BusinessApplication","operatingSystem":"Any","inLanguage":"ar","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript","author":{"@type":"Person","name":"Hossam Ali","url":"https://hossam-ali-hr.github.io/CV/ar/"},"softwareVersion":"3.0","dateModified":"2026-10-21"}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"الرئيسية","item":"https://hossam-ali-hr.github.io/CV/ar/"},{"@type":"ListItem","position":2,"name":"أدوات الموارد البشرية","item":"https://hossam-ali-hr.github.io/CV/ar/tools/"},{"@type":"ListItem","position":3,"name":"حاسبة الإجازات ونهاية الخدمة"}]}</script>
-<link rel="stylesheet" href="/CV/assets/css/calculator.css?v=3.0">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"حاسبة الإجازات ونهاية الخدمة في قطر","url":"https://hossam-ali-hr.github.io/CV/ar/tools/leave-eos-calculator.html","description":"حاسبة مبسطة للإجازات ونهاية الخدمة في قطر، مع راتب شهر المغادرة والتذكرة وتقسيم الإجازة وكشف تسوية قابل للطباعة، دون رفع بيانات.","applicationCategory":"BusinessApplication","operatingSystem":"Any","inLanguage":"ar","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript","author":{"@type":"Person","name":"Hossam Ali","url":"https://hossam-ali-hr.github.io/CV/ar/"},"softwareVersion":"3.1","dateModified":"2026-10-21"}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"الرئيسية","item":"https://hossam-ali-hr.github.io/CV/ar/"},{"@type":"ListItem","position":2,"name":"أدوات الموارد البشرية","item":"https://hossam-ali-hr.github.io/CV/ar/tools/"},{"@type":"ListItem","position":3,"name":"حاسبة الإجازات ونهاية الخدمة"}]}</script>
+<link rel="stylesheet" href="/CV/assets/css/calculator.css?v=3.1">
 </head>
 <body class="calculator-page">
 <a class="skip-link" href="#main">انتقل إلى المحتوى</a>
@@ -79,25 +79,31 @@
 </div>
 <div class="calc-field">
 <label for="basic">الراتب الأساسي الشهري (ر.ق)</label>
-<input id="basic" name="basic" type="number" value="0" min="0" max="100000000" step="any" inputmode="decimal" aria-describedby="basic-help">
+<input id="basic" name="basic" type="number" value="" placeholder="3000" min="0" max="100000000" step="any" inputmode="decimal" aria-describedby="basic-help">
 <small id="basic-help">الأجر الأساسي دون البدلات؛ أساس أجر الإجازة والمكافأة.</small>
+</div>
+<div class="calc-field" hidden>
+<label for="eosDays">سياسة مكافأة نهاية الخدمة · أيام لكل سنة</label>
+<input id="eosDays" name="eosDays" type="number" value="21" min="21" max="366" step="any" inputmode="decimal" aria-describedby="eosDays-help">
+<small id="eosDays-help">21 يوما لكل سنة على آخر راتب أساسي؛ يمكن إدخال معدل أعلى معتمد. مستقلة عن سياسة الإجازة.</small>
 </div>
 <div class="calc-field">
 <label for="preset">سياسة الإجازة السنوية</label>
 <select id="preset" name="preset" aria-describedby="preset-help">
-<option value="company" data-help="21 يوما سنويا قبل خمس سنوات خدمة، ثم 30 يوما بعدها." selected>21 يوم، ثم 30 بعد خمس سنوات</option>
-<option value="statutory" data-help="ثلاثة أسابيع قبل خمس سنوات خدمة، وأربعة أسابيع بعدها.">21 يوم، ثم 28 بعد خمس سنوات</option>
-<option value="thirty" data-help="استحقاق سنوي ثابت قدره 30 يوما طوال الخدمة.">30 يوم كل سنة</option>
+<option value="company" data-help="سياسة شركة معتمدة: 21 يوما قبل خمس سنوات و30 بعدها، بدلا من الحد الأدنى البالغ 28 بعد خمس سنوات." selected>سياسة شركة · 21 ثم 30 يوما</option>
+<option value="statutory" data-help="ثلاثة أسابيع قبل خمس سنوات خدمة، وأربعة أسابيع بعدها.">الحد الأدنى القانوني · 21 ثم 28 يوما</option>
+<option value="thirty" data-help="استحقاق سنوي ثابت قدره 30 يوما طوال الخدمة.">سياسة شركة · 30 يوما كل سنة</option>
 <option value="custom" data-help="حدد عدد الأيام للشريحتين في إعدادات الشركة بالأسفل.">إدخال سياسة أخرى</option>
 </select>
 <small id="preset-help" data-option-help="preset">21 يوما سنويا قبل خمس سنوات خدمة، ثم 30 يوما بعدها.</small>
 </div>
 <div class="calc-field">
-<label for="asOf">آخر يوم عمل</label>
+<label for="asOf">آخر يوم في الخدمة</label>
 <input id="asOf" name="asOf" type="date" value=""  aria-describedby="asOf-help">
-<small id="asOf-help">يشمل راتب الشهر هذا اليوم؛ وتحسب مدة المكافأة حتى هذا التاريخ.</small>
+<small id="asOf-help">آخر يوم في علاقة العمل؛ يدخل في مدة الخدمة واستحقاق الإجازة وراتب الشهر.</small>
 </div>
 </div>
+<p class="calc-help" id="eos-explanation" hidden>المكافأة وصرف رصيد الإجازة بندان مستقلان. تغيير سياسة الإجازة لا يغير معدل المكافأة.</p>
 <details class="calc-option ">
 <summary>
 <span>بدلات الراتب الشهرية<small>أضف السكن والمواصلات والبدلات النقدية الأخرى إن وجدت.</small>
@@ -142,12 +148,12 @@
 <div class="calc-field">
 <label for="balanceAsOf">تاريخ الرصيد المؤكد</label>
 <input id="balanceAsOf" name="balanceAsOf" type="date" value=""  aria-describedby="balanceAsOf-help">
-<small id="balanceAsOf-help">من تاريخ التعيين وحتى المغادرة أو نهاية الخدمة.</small>
+<small id="balanceAsOf-help">استخدم الرصيد في بداية هذا اليوم، من تاريخ التعيين وحتى المغادرة أو نهاية الخدمة.</small>
 </div>
 <div class="calc-field">
 <label for="opening">أيام الرصيد الافتتاحي / المرحل</label>
 <input id="opening" name="opening" type="number" value="0" min="-10000" max="10000" step="any" inputmode="decimal" aria-describedby="opening-help">
-<small id="opening-help">أيام تضاف في بداية الدورة المختارة؛ اتركها صفرا إن لم يوجد رصيد.</small>
+<small id="opening-help">أضف أي رصيد سابق غير مستخدم؛ آخر عودة لا تلغي الرصيد المرحل تلقائيا.</small>
 </div>
 <div class="calc-field">
 <label for="taken">أيام استخدمت خلال هذه الدورة</label>
@@ -488,11 +494,11 @@
 <div class="calc-field">
 <label for="accrualMethod">طريقة استحقاق الإجازة</label>
 <select id="accrualMethod" name="accrualMethod" aria-describedby="accrualMethod-help">
-<option value="actual" data-help="تقسيم الأيام على طول كل سنة خدمة فعلي بما يشمل السنوات الكبيسة." selected>طول سنة الخدمة الفعلي</option>
-<option value="365" data-help="كل 365 يوما تقويميا تستحق رصيدا سنويا.">الأيام الفعلية / 365</option>
+<option value="actual" data-help="تقسيم الأيام على طول كل سنة خدمة فعلي بما يشمل السنوات الكبيسة.">طول سنة الخدمة الفعلي</option>
+<option value="365" data-help="كل 365 يوما تقويميا تستحق رصيدا سنويا." selected>الأيام الفعلية / 365</option>
 <option value="360" data-help="استخدام شهور من 30 يوما وسنة من 360 يوما وفق السياسة المعتمدة.">شهور 30 يوم / 360</option>
 </select>
-<small id="accrualMethod-help" data-option-help="accrualMethod">تقسيم الأيام على طول كل سنة خدمة فعلي بما يشمل السنوات الكبيسة.</small>
+<small id="accrualMethod-help" data-option-help="accrualMethod">الأيام التقويمية الفعلية مقسومة على 365؛ يمكن اختيار اتفاقية حساب أخرى معتمدة.</small>
 </div>
 <div class="calc-field">
 <label for="payBasis">قسمة الراتب اليومي</label>
@@ -562,13 +568,9 @@
 </div>
 </div>
 <div id="exit-policy" hidden>
-<h3>المكافأة وصرف الرصيد</h3>
+<h3>صرف رصيد الإجازة عند نهاية الخدمة</h3>
 <div class="calc-fields">
-<div class="calc-field">
-<label for="eosDays">أيام المكافأة عن كل سنة خدمة</label>
-<input id="eosDays" name="eosDays" type="number" value="21" min="21" max="366" step="any" inputmode="decimal" aria-describedby="eosDays-help">
-<small id="eosDays-help">الأساسي ÷ 30 × الأيام × سنوات الخدمة؛ الحد الأدنى 21 يوما.</small>
-</div>
+
 <div class="calc-field">
 <label for="leavePay">أجر صرف رصيد الإجازة</label>
 <select id="leavePay" name="leavePay" aria-describedby="leavePay-help">
@@ -616,11 +618,12 @@
 </summary>
 <div class="calc-option-body">
 <div class="calc-help">
+<p>تحتسب المكافأة من بداية الخدمة المستمرة حتى آخر يوم في علاقة العمل شاملا. مدة الخدمة بالأيام ÷ 365، وقيمتها آخر راتب أساسي ÷ 30 × أيام المكافأة المختارة لكل سنة. تبدأ الأهلية العادية من 365 يوم خدمة. سياسة الإجازة تخص الرصيد غير المستخدم فقط؛ آخر عودة ليست بداية للمكافأة. حالات الفصل الخاصة وأنظمة التقاعد تحتاج مراجعة منفصلة. راتب الشهر الكامل يساوي راتبا شهريا واحدا، بما في ذلك فبراير والشهور ذات 31 يوما. مع قسمة 30 يخصم يوم الغياب دون أجر بقيمة الراتب الشهري ÷ 30.</p>
 <p>الإجازة من المغادرة حتى اليوم السابق للعودة. تبدأ دورة الاستحقاق من آخر عودة افتراضيا؛ ويظل التعيين أساس شريحة خمس سنوات والمكافأة. الرصيد السالب يظهر للمراجعة دون خصمه تلقائيا من المكافأة.</p>
 <p>راتب الشهر يشمل الأيام التقويمية المستحقة قبل المغادرة، أو حتى آخر يوم عمل عند نهاية الخدمة، بما فيها الراحة المدفوعة والبدلات النقدية المدخلة. الغياب دون أجر يخفض المبلغ بنسبة الأيام. تطبق قسمة الراتب اليومي المختارة. تستبعد أيام الراتب المحتسبة سابقا والإجازة السابقة بالخطة والسكن المغطى بدفعة مقدمة لمنع تكرار الصرف.</p>
 <p>الفترتان تستخدمان رصيدا واحدا مرحلا. توزع التذكرة النقدية على أيام الإجازة السنوية المدفوعة بحد المخصص غير المستخدم. تذاكر الشركة خارج نقد الموظف. يحسب السكن المقدم والعطلات المؤكدة مرة واحدة. قواعد بدلات الإجازة مستقلة عن راتب أيام العمل العادية.</p>
 <p>تقدير للموظف الشهري العادي بالقطاع الخاص الخاضع لقانون العمل القطري. راجع العقد والاعتمادات وسجلات الصرف قبل الدفع. لا يشمل بدل الإنذار والسلف والمكافآت المصروفة سابقا وأنظمة العمل الخاصة. قبل سنة خدمة تكون المكافأة صفرا وتراجع أهلية الإجازة التقديرية.</p>
-<p>المرجع: <a href="https://www.almeezan.qa/LawView.aspx?LawID=3961&amp;language=en&amp;opt=">قانون العمل القطري رقم 14 لسنة 2004</a> — المواد 54 و68 و72 و78–81. المراجعة: 21 أكتوبر 2026.</p>
+<p>المرجع: <a href="https://encyclop.sjc.gov.qa/lawlib/Images/criminal/laws/14-2004/1.htm">قانون العمل القطري رقم 14 لسنة 2004</a> — المواد 8 و54 و68 و72 و78–81. المراجعة: 21 أكتوبر 2026.</p>
 </div>
 </div>
 </details>
@@ -649,7 +652,7 @@
 <a aria-label="تواصل عبر واتساب" class="whatsapp-fab" href="https://wa.me/97433190656" rel="noopener noreferrer" target="_blank" title="تواصل عبر واتساب"><svg aria-hidden="true" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.559.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.56 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.322-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418c.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"></path></svg><span class="sr-only">واتساب</span></a>
 
 
-<script defer src="/CV/assets/js/main.js"></script><script defer src="/CV/assets/js/entitlements-core.js?v=3.0"></script><script defer src="/CV/assets/js/calculator.js?v=3.0"></script>
+<script defer src="/CV/assets/js/main.js"></script><script defer src="/CV/assets/js/entitlements-core.js?v=3.1"></script><script defer src="/CV/assets/js/calculator.js?v=3.1"></script>
 <section class="calc-print-root" id="calculator-print" aria-label="كشف التسوية للطباعة"><p>احسب التسوية أولا لعرض كشف الطباعة.</p></section>
 </body>
 </html>

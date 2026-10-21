@@ -134,3 +134,25 @@ Results show a compact payment breakdown and an optional calculation disclosure.
 Printing / saving PDF uses a separate report with dates, salary, itemized amounts,
 prior-payment deductions and company tickets outside cash totals. Changing any
 input clears both the result and the print report. No input is uploaded or saved.
+### Calculator 3.1: independent gratuity and leave policies
+
+EOS now exposes its own annual gratuity-days input beside the separate unused
+annual-leave policy. Annual-leave rates and the last-return cycle affect the
+unused-leave payment; neither changes the gratuity rate or service start. Last
+basic salary remains the gratuity wage. The print report records both policies.
+
+In the public EOS mode, `asOf` is the final employment day, included in service,
+leave accrual and salary. Service is calendar days / 365, with ordinary gratuity
+eligibility from 365 service days (Qatar Labour Law Articles 8 and 54). The public
+form defaults leave proration to actual days / 365; alternative approved accrual
+conventions remain selectable. The legacy arithmetic `both` mode retains its
+original date and service-year convention for existing API examples.
+
+A complete payroll month is one entered monthly cash salary, including February
+and months with 31 days. In fixed-30 mode, full-month payroll units start at 30
+and unpaid absence is subtracted from those units. Partial months keep their
+actual eligible days; calendar-divisor mode uses each month's actual length.
+Salary amounts are rounded to cents before validating prior payments. Inactive
+EOS cash-ticket controls and unused second-period inputs are ignored. Ordinary
+mode requires a positive basic salary. Special dismissal/pension regimes and
+items excluded in the on-page scope still require separate review.

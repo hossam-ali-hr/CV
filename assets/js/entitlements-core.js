@@ -41,19 +41,21 @@
     const fail=(field,code)=>{const e=new Error(code);e.field=field;e.code=code;throw e;};
     const choice=(key,values)=>{if(!values.includes(d[key]))fail(key,'choice');};
     choice('calculationMode',['both','leave','eos']);
+    if(d.calculationMode!=='both'&&raw.accrualMethod===undefined)d.accrualMethod='365';
     if(d.calculationMode==='leave'){
       if(!validDate(d.leaveStart)||d.leaveStart<'1900-01-01')fail('leaveStart','date');
       d.travelEnabled=true;d.asOf=d.leaveStart;d.leavePay='basic';d.eosDays=21;d.encashComp=false;d.encashTicketOnExit=false;
     }
     if(d.calculationMode==='eos'){d.travelEnabled=false;d.splitLeave=false;}
     for(const key of ['serviceStart','asOf'])if(!validDate(d[key]) || d[key]<'1900-01-01')fail(key,'date');
-    if(d.asOf<d.serviceStart)fail('asOf','order');
-    if(serviceYears(d.serviceStart,d.asOf)>80)fail('asOf','range');
+    if(d.asOf<d.serviceStart)fail(d.calculationMode==='leave'?'leaveStart':'asOf','order');
+    if(serviceYears(d.serviceStart,d.asOf)>80)fail(d.calculationMode==='leave'?'leaveStart':'asOf','range');
     const ranges={basic:[0,1e8],housing:[0,1e8],transport:[0,1e8],other:[0,1e8],under5:[21,366],after5:[28,366],eosDays:[21,366],extraDays:[0,366],opening:[-10000,10000],taken:[0,10000],adjustment:[-10000,10000],pendingHolidayDays:[0,366],customLeaveWage:[0,1e8],holidayCashAmount:[0,1e9],holidayCashFactor:[0,10],housingFixed:[0,1e8],transportFixed:[0,1e8],otherFixed:[0,1e8],housingPaid:[0,1e8],returnThreshold:[1,31],housingPaid2:[0,1e8],housingFixed2:[0,1e8],transportFixed2:[0,1e8],otherFixed2:[0,1e8],ticketValue:[0,1e8],ticketAnnualDays:[0,732],ticketUsedBefore:[0,1e8],monthSalaryUnpaidDays:[0,31],monthSalaryPaid:[0,1e8],monthSalaryUnpaidDays2:[0,31],monthSalaryPaid2:[0,1e8]};
     if(!d.includeMonthSalary)d.monthSalaryUnpaidDays=d.monthSalaryPaid=d.monthSalaryUnpaidDays2=d.monthSalaryPaid2=0;
-    if(!d.splitLeave)d.monthSalaryUnpaidDays2=d.monthSalaryPaid2=0;
     if(!d.travelEnabled)d.splitLeave=false;
+    if(!d.splitLeave)d.monthSalaryUnpaidDays2=d.monthSalaryPaid2=0;
     if(!d.travelEnabled)d.ticketAnnualDays=0;
+    if(d.calculationMode==='eos'&&d.ticketMode==='cash'&&!d.encashTicketOnExit)d.ticketMode='none';
     if(!d.splitLeave){d.housingPaid2=0;d.housingFixed2=d.transportFixed2=d.otherFixed2=0;}
     for(const name of ['housing','transport','other'])if(d[name+'Mode']!=='fixed')d[name+'Fixed2']=0;
     if(!d.housingAdvance)d.housingPaid2=0;
@@ -68,31 +70,37 @@
     if(!d.housingAdvance){d.returnThreshold=15;d.housingPaid=0;}
     if(d.holidaySettlement!=='cash'){d.holidayCashAmount=0;d.holidayCashFactor=1;}
     if(d.holidayCashBasis==='approved')d.holidayCashFactor=1;
+    else d.holidayCashAmount=0;
     if(d.leavePay!=='custom')d.customLeaveWage=0;
     for(const [key,[min,max]]of Object.entries(ranges)) {
       if(d[key]===''&&['basic','under5','after5','eosDays','returnThreshold'].includes(key))fail(key,'number');
       const n=Number(d[key]??0);if(!Number.isFinite(n)||n<min||n>max)fail(key,'number');d[key]=n;
     }
+    if(d.calculationMode!=='both'&&d.basic<=0)fail('basic','positiveSalary');
     choice('leaveBasis',['return','hire','opening']);choice('accrualMethod',['actual','365','360']);choice('payBasis',['30','calendar']);
     choice('leavePay',['basic','housing','transport','gross','custom']);choice('holidaySettlement',['review','credit','cash']);choice('holidayCashBasis',['approved','basic','gross']);
     choice('ticketMode',['none','cash','company']);
     if(d.ticketMode==='cash'){choice('ticketAllocation',['prorated','first','second','perTrip']);if(d.ticketValue<=0)fail('ticketValue','ticketValue');}
     if(d.ticketMode==='company')choice('ticketCompanyPeriod',['first','second','both']);
-    let through=d.asOf,travelEnd=null;
+    const serviceThrough=d.calculationMode==='eos'?plusDays(d.asOf,1):d.asOf;
+    let through=serviceThrough,travelEnd=null;
     if(d.travelEnabled) {
       for(const key of ['leaveStart','returnDate'])if(!validDate(d[key]))fail(key,'date');
       if(d.leaveStart<d.serviceStart||d.returnDate<=d.leaveStart)fail('returnDate','travelOrder');
       if(days(d.leaveStart,d.returnDate)>366)fail('returnDate','travelRange');
       through=d.leaveStart;travelEnd=d.returnDate;
     }
+    const balanceCutoff=d.calculationMode==='eos'?d.asOf:through;
     let from;
     if(d.leaveBasis==='return') {
-      if(!validDate(d.lastReturn)||d.lastReturn<d.serviceStart||d.lastReturn>through)fail('lastReturn','returnCycle');from=d.lastReturn;
+      if(!validDate(d.lastReturn)||d.lastReturn<d.serviceStart||d.lastReturn>balanceCutoff)fail('lastReturn','returnCycle');from=d.lastReturn;
     } else if(d.leaveBasis==='opening') {
-      if(!validDate(d.balanceAsOf)||d.balanceAsOf<d.serviceStart||d.balanceAsOf>through)fail('balanceAsOf','balanceDate');from=d.balanceAsOf;
+      if(!validDate(d.balanceAsOf)||d.balanceAsOf<d.serviceStart||d.balanceAsOf>balanceCutoff)fail('balanceAsOf','balanceDate');from=d.balanceAsOf;
     } else from=d.serviceStart;
-    if(serviceYears(d.serviceStart,through)>80)fail('leaveStart','range');
-    const years=serviceYears(d.serviceStart,d.asOf),eligible=d.asOf>=addYears(d.serviceStart,1);
+    if(serviceYears(d.serviceStart,through)>80)fail(d.calculationMode==='eos'?'asOf':'leaveStart','range');
+    const serviceDays=days(d.serviceStart,serviceThrough);
+    const years=d.calculationMode==='eos'?serviceDays/365:serviceYears(d.serviceStart,d.asOf);
+    const eligible=d.calculationMode==='eos'?serviceDays>=365:d.asOf>=addYears(d.serviceStart,1);
     const earned=accrual(d.serviceStart,from,through,d.under5,d.after5,d.extraDays,d.accrualMethod);
     const annualBalance=d.opening+earned-d.taken+d.adjustment;
     const compDays=d.holidaySettlement==='credit'?d.pendingHolidayDays:0;
@@ -137,15 +145,20 @@
       }
       const unpaidDays=d['monthSalaryUnpaidDays'+suffix],calendarDays=dates.length;
       if(unpaidDays>calendarDays)fail('monthSalaryUnpaidDays'+suffix,'salaryUnpaid');
-      const paidDays=calendarDays-unpaidDays,weight=calendarDays?paidDays/calendarDays:0;
+      const paidDays=calendarDays-unpaidDays;
+      // A complete payroll month is one monthly salary, including February/31-day months.
+      const fullMonth=from===start&&cutoff===firstNextMonth(start)&&calendarDays===days(start,cutoff);
+      const payrollDays=Math.max(0,(d.payBasis==='30'&&fullMonth?30:calendarDays)-unpaidDays);
+      const weight=calendarDays?payrollDays/calendarDays:0;
       let amount=0,housingExcluded=0;
       for(const date of dates) {
         const housing=coveredHousing.some(p=>date>=p.start&&date<p.end)?daily(d.housing,date,d.payBasis)*weight:0;
         housingExcluded+=housing;amount+=daily(gross,date,d.payBasis)*weight-housing;
       }
+      amount=Math.round((amount+Number.EPSILON)*100)/100;
       const paidBefore=d['monthSalaryPaid'+suffix];
       if(paidBefore>amount+1e-7)fail('monthSalaryPaid'+suffix,'salaryPaid');
-      return {month,from,to:plusDays(cutoff,-1),calendarDays,paidDays,unpaidDays,grossMonthly:gross,divisor:d.payBasis==='calendar'?new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5)),0)).getUTCDate():30,
+      return {month,from,to:plusDays(cutoff,-1),calendarDays,paidDays,payrollDays,fullMonth,unpaidDays,grossMonthly:gross,divisor:d.payBasis==='calendar'?new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5)),0)).getUTCDate():30,
         housingExcluded,excludedDays:Math.max(0,days(from,cutoff)-calendarDays),amount,paidBefore,remaining:Math.max(0,amount-paidBefore)};
     }
     function payment(period,available,index) {
@@ -221,7 +234,7 @@
     const ticket={mode:d.ticketMode,value:d.ticketValue,days:ticketDays,budget:ticketBudget,usedBefore:d.ticketUsedBefore,remaining:ticketRemaining,exitValue:ticketExitValue};
     // The exit date is the final paid working date; leave departure itself is excluded.
     const currentMonthSalary=!d.travelEnabled?monthSalary(plusDays(d.asOf,1),'',[],d.asOf.slice(0,7)):null;
-    return {inputs:d,years,eligible,from,through,earned,annualBalance,compDays,balance,leaveWage,eos,leaveValue,compValue,holidayCash,ticket,currentMonthSalary,total:eos+leaveValue+compValue+holidayCash+ticketExitValue+(currentMonthSalary?currentMonthSalary.remaining:0),travel:travels[0]||null,travels,plan};
+    return {inputs:d,years,serviceDays,serviceThrough,eligible,from,through,earned,annualBalance,compDays,balance,leaveWage,eos,leaveValue,compValue,holidayCash,ticket,currentMonthSalary,total:eos+leaveValue+compValue+holidayCash+ticketExitValue+(currentMonthSalary?currentMonthSalary.remaining:0),travel:travels[0]||null,travels,plan};
   }
 
   const api={calculate,validDate,serviceYears,accrual};

@@ -22,8 +22,8 @@
 <link href="/CV/assets/css/main.css" rel="stylesheet"/>
 
 <meta name="twitter:image:alt" content="Hossam Ali — HR operations, analytics and automation"/>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Qatar Leave & EOS Calculator","url":"https://hossam-ali-hr.github.io/CV/en/tools/leave-eos-calculator.html","description":"Simple Qatar leave and end-of-service calculator with current-month salary, cash or company tickets, split leave and a printable settlement. No data uploads.","applicationCategory":"BusinessApplication","operatingSystem":"Any","inLanguage":"en","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript","author":{"@type":"Person","name":"Hossam Ali","url":"https://hossam-ali-hr.github.io/CV/en/"},"softwareVersion":"3.0","dateModified":"2026-10-21"}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://hossam-ali-hr.github.io/CV/en/"},{"@type":"ListItem","position":2,"name":"HR tools","item":"https://hossam-ali-hr.github.io/CV/en/tools/"},{"@type":"ListItem","position":3,"name":"Leave & EOS calculator"}]}</script>
-<link rel="stylesheet" href="/CV/assets/css/calculator.css?v=3.0">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Qatar Leave & EOS Calculator","url":"https://hossam-ali-hr.github.io/CV/en/tools/leave-eos-calculator.html","description":"Simple Qatar leave and end-of-service calculator with current-month salary, cash or company tickets, split leave and a printable settlement. No data uploads.","applicationCategory":"BusinessApplication","operatingSystem":"Any","inLanguage":"en","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript","author":{"@type":"Person","name":"Hossam Ali","url":"https://hossam-ali-hr.github.io/CV/en/"},"softwareVersion":"3.1","dateModified":"2026-10-21"}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://hossam-ali-hr.github.io/CV/en/"},{"@type":"ListItem","position":2,"name":"HR tools","item":"https://hossam-ali-hr.github.io/CV/en/tools/"},{"@type":"ListItem","position":3,"name":"Leave & EOS calculator"}]}</script>
+<link rel="stylesheet" href="/CV/assets/css/calculator.css?v=3.1">
 </head>
 <body class="calculator-page">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -79,25 +79,31 @@
 </div>
 <div class="calc-field">
 <label for="basic">Monthly basic salary (QAR)</label>
-<input id="basic" name="basic" type="number" value="0" min="0" max="100000000" step="any" inputmode="decimal" aria-describedby="basic-help">
+<input id="basic" name="basic" type="number" value="" placeholder="3000" min="0" max="100000000" step="any" inputmode="decimal" aria-describedby="basic-help">
 <small id="basic-help">Basic pay before allowances; used for leave pay and EOS.</small>
+</div>
+<div class="calc-field" hidden>
+<label for="eosDays">EOS policy · days per service year</label>
+<input id="eosDays" name="eosDays" type="number" value="21" min="21" max="366" step="any" inputmode="decimal" aria-describedby="eosDays-help">
+<small id="eosDays-help">21 days per year on last basic salary; a higher approved rate may be entered. Independent of annual leave.</small>
 </div>
 <div class="calc-field">
 <label for="preset">Annual leave policy</label>
 <select id="preset" name="preset" aria-describedby="preset-help">
-<option value="company" data-help="21 days a year before five years of service; 30 afterwards." selected>21 days, then 30 after 5 years</option>
-<option value="statutory" data-help="Three weeks before five years of service; four weeks afterwards.">21 days, then 28 after 5 years</option>
-<option value="thirty" data-help="A fixed annual allowance of 30 days at every service length.">30 days every year</option>
+<option value="company" data-help="Approved company policy: 21 days before five service years and 30 afterwards, above the 28-day minimum." selected>Company policy · 21 then 30 days</option>
+<option value="statutory" data-help="Three weeks before five years of service; four weeks afterwards.">Legal minimum · 21 then 28 days</option>
+<option value="thirty" data-help="A fixed annual allowance of 30 days at every service length.">Company policy · 30 days each year</option>
 <option value="custom" data-help="Set the two annual rates under company policy below.">Enter another policy</option>
 </select>
 <small id="preset-help" data-option-help="preset">21 days a year before five years of service; 30 afterwards.</small>
 </div>
 <div class="calc-field">
-<label for="asOf">Last working day</label>
+<label for="asOf">Final day of employment</label>
 <input id="asOf" name="asOf" type="date" value=""  aria-describedby="asOf-help">
-<small id="asOf-help">Included in current-month salary; EOS service runs up to this date.</small>
+<small id="asOf-help">This is the final day of employment. Included in service length, leave accrual and current-month salary.</small>
 </div>
 </div>
+<p class="calc-help" id="eos-explanation" hidden>Gratuity and unused annual leave are separate payments. Changing the leave policy does not change the gratuity rate.</p>
 <details class="calc-option ">
 <summary>
 <span>Monthly salary allowances<small>Add housing, transport or other cash allowances, if any.</small>
@@ -142,12 +148,12 @@
 <div class="calc-field">
 <label for="balanceAsOf">Verified balance date</label>
 <input id="balanceAsOf" name="balanceAsOf" type="date" value=""  aria-describedby="balanceAsOf-help">
-<small id="balanceAsOf-help">No earlier than hire, and no later than departure or exit.</small>
+<small id="balanceAsOf-help">Use the balance at the start of this date, from hire to departure/exit.</small>
 </div>
 <div class="calc-field">
 <label for="opening">Opening / carried-over days</label>
 <input id="opening" name="opening" type="number" value="0" min="-10000" max="10000" step="any" inputmode="decimal" aria-describedby="opening-help">
-<small id="opening-help">Days to add at the start of the selected cycle; normally zero.</small>
+<small id="opening-help">Include any unused prior balance. A last return does not automatically erase carryover.</small>
 </div>
 <div class="calc-field">
 <label for="taken">Days already used this cycle</label>
@@ -488,11 +494,11 @@
 <div class="calc-field">
 <label for="accrualMethod">Leave accrual convention</label>
 <select id="accrualMethod" name="accrualMethod" aria-describedby="accrualMethod-help">
-<option value="actual" data-help="Divide days by the actual length of each service year, including leap years." selected>Actual service-year length</option>
-<option value="365" data-help="Every 365 calendar days earn one annual allocation.">Actual days / 365</option>
+<option value="actual" data-help="Divide days by the actual length of each service year, including leap years.">Actual service-year length</option>
+<option value="365" data-help="Every 365 calendar days earn one annual allocation." selected>Actual days / 365</option>
 <option value="360" data-help="Use 30-day months and a 360-day year under an approved convention.">30-day months / 360</option>
 </select>
-<small id="accrualMethod-help" data-option-help="accrualMethod">Divide days by the actual length of each service year, including leap years.</small>
+<small id="accrualMethod-help" data-option-help="accrualMethod">Actual calendar days divided by 365; other approved conventions can be selected.</small>
 </div>
 <div class="calc-field">
 <label for="payBasis">Daily salary divisor</label>
@@ -562,13 +568,9 @@
 </div>
 </div>
 <div id="exit-policy" hidden>
-<h3>EOS and unused leave</h3>
+<h3>Unused-leave payout on exit</h3>
 <div class="calc-fields">
-<div class="calc-field">
-<label for="eosDays">EOS days per service year</label>
-<input id="eosDays" name="eosDays" type="number" value="21" min="21" max="366" step="any" inputmode="decimal" aria-describedby="eosDays-help">
-<small id="eosDays-help">Basic salary ÷ 30 × days × service years; minimum 21 days.</small>
-</div>
+
 <div class="calc-field">
 <label for="leavePay">Unused-leave encashment wage</label>
 <select id="leavePay" name="leavePay" aria-describedby="leavePay-help">
@@ -616,11 +618,12 @@
 </summary>
 <div class="calc-option-body">
 <div class="calc-help">
+<p>EOS uses the original continuous-service start through the final employment day inclusive. Service days ÷ 365 are valued at last basic salary ÷ 30 × the selected EOS days per year. Standard eligibility starts at 365 service days. The annual-leave policy determines unused leave only; the last return is not an EOS start date. Special dismissal and pension cases require separate review. A complete payroll month earns one monthly salary, including February and 31-day months. Under the 30-day divisor, unpaid absences are deducted at monthly salary ÷ 30 per day.</p>
 <p>Leave runs from departure through the day before return. The accrual cycle begins at last return by default; original hire date still controls the five-year band and EOS. Negative balances are shown for review, with no automatic deduction from gratuity.</p>
 <p>Current-month salary covers eligible calendar payroll days before departure, or through the last working day on exit. It includes paid rest days and all entered monthly cash allowances. Unpaid absence reduces it proportionally. The selected daily divisor applies. Previously counted salary dates, earlier planned leave and covered housing advances are excluded to avoid duplicate payments.</p>
 <p>Two periods carry one balance forward. Prorated cash tickets use paid annual leave days, capped at the unused allocation. Company-provided tickets remain outside employee cash. Housing advances and confirmed holidays are counted once. Leave allowance rules apply independently from normal working-month salary.</p>
 <p>An estimate for ordinary monthly paid private-sector employees under Qatar Labour Law. Verify the contract, approvals and payment records before disbursement. Excludes notice pay, loans, prior gratuity payments and special employment regimes. Below one year, gratuity is zero and projected leave eligibility needs review.</p>
-<p>Source: <a href="https://www.almeezan.qa/LawView.aspx?LawID=3961&amp;language=en&amp;opt=">Qatar Labour Law No. 14 of 2004</a> — Articles 54, 68, 72, 78–81. Reviewed 21 October 2026.</p>
+<p>Source: <a href="https://encyclop.sjc.gov.qa/lawlib/Images/criminal/laws/14-2004/1.htm">Qatar Labour Law No. 14 of 2004</a> — Articles 8, 54, 68, 72, 78–81. Reviewed 21 October 2026.</p>
 </div>
 </div>
 </details>
@@ -649,7 +652,7 @@
 <a aria-label="Chat on WhatsApp" class="whatsapp-fab" href="https://wa.me/97433190656" rel="noopener noreferrer" target="_blank" title="Chat on WhatsApp"><svg aria-hidden="true" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.559.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.56 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.322-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418c.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"></path></svg><span class="sr-only">WhatsApp</span></a>
 
 
-<script defer src="/CV/assets/js/main.js"></script><script defer src="/CV/assets/js/entitlements-core.js?v=3.0"></script><script defer src="/CV/assets/js/calculator.js?v=3.0"></script>
+<script defer src="/CV/assets/js/main.js"></script><script defer src="/CV/assets/js/entitlements-core.js?v=3.1"></script><script defer src="/CV/assets/js/calculator.js?v=3.1"></script>
 <section class="calc-print-root" id="calculator-print" aria-label="Printable settlement"><p>Calculate a settlement before printing.</p></section>
 </body>
 </html>

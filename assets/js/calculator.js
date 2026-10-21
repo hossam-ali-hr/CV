@@ -17,7 +17,7 @@
     holidayDates:t('Enter valid YYYY-MM-DD dates inside the leave, excluding return day.','أدخل تواريخ صحيحة بصيغة YYYY-MM-DD داخل الإجازة دون يوم العودة.'),holidayDuplicate:t('A holiday date is listed more than once.','أحد تواريخ العطلات مكرر.'),
     housingFixed:t('Automatic housing advance cannot be combined with a fixed net housing amount. Choose a daily housing rule or disable the advance.','لا يجمع السكن المقدم التلقائي مع مبلغ سكن صاف ثابت. اختر قاعدة سكن يومية أو ألغ تقديم السكن.'),advancePaid:t('Already-paid housing must not exceed the eligible advance.','لا يزيد السكن المصروف بالفعل على الدفعة المقدمة المستحقة.'),
     splitOverlap:t('The second period must start on or after the first return date.','تبدأ الفترة الثانية في تاريخ العودة من الأولى أو بعده.'),ticketValue:t('Enter a positive annual cash ticket allowance.','أدخل قيمة موجبة لبدل التذكرة السنوي النقدي.'),ticketUsed:t('Prior ticket use exceeds the allocation for this plan.','مخصص التذكرة المستخدم سابقا أكبر من المخصص المتاح لهذه الخطة.'),ticketSecond:t('Enable two leave periods to select payment or a company ticket with the second period.','فعل تقسيم الإجازة لفترتين لاختيار صرف أو توفير التذكرة مع الفترة الثانية.'),
-    salaryUnpaid:t('Unpaid absence exceeds the eligible salary days in this month.','أيام الغياب دون أجر أكبر من أيام الراتب المستحقة في هذا الشهر.'),salaryPaid:t('Salary already paid exceeds the salary calculated for these days.','الراتب المصروف بالفعل أكبر من الراتب المحتسب عن هذه الأيام.')
+    salaryUnpaid:t('Unpaid absence exceeds the eligible salary days in this month.','أيام الغياب دون أجر أكبر من أيام الراتب المستحقة في هذا الشهر.'),salaryPaid:t('Salary already paid exceeds the salary calculated for these days.','الراتب المصروف بالفعل أكبر من الراتب المحتسب عن هذه الأيام.'),positiveSalary:t('Enter a basic monthly salary greater than zero.','أدخل راتبا أساسيا شهريا أكبر من صفر.')
   };
   const printRoot=el('calculator-print');let lastResult=null,originalTitle=document.title;
   const selectedMode=()=>form.querySelector('input[name="calculationMode"]:checked').value;
@@ -28,6 +28,11 @@
   function sync() {
     const leave=selectedMode()==='leave',split=leave&&el('splitLeave').checked,cash=el('holidaySettlement').value==='cash',ticket=el('ticketMode').value;
     el('travelEnabled').checked=leave;el('travel-options').hidden=!leave;showField('asOf',!leave);
+    showField('eosDays',!leave);el('eos-explanation').hidden=leave;
+    form.querySelector('label[for="preset"]').textContent=leave?t('Annual leave policy','سياسة الإجازة السنوية'):t('Unused annual-leave policy','سياسة رصيد الإجازة عند نهاية الخدمة');
+    form.querySelector('label[for="basic"]').textContent=leave?t('Monthly basic salary (QAR)','الراتب الأساسي الشهري (ر.ق)'):t('Last monthly basic salary (QAR)','آخر راتب أساسي شهري (ر.ق)');
+    el('lastReturn-help').textContent=leave?t('Accrue leave since the last actual return. Add any unused carryover under balance adjustments.','استحقاق الإجازة منذ آخر عودة فعلية. أضف أي رصيد سابق غير مستخدم في تعديل الرصيد.'):t('For unused leave only, through the final day. Gratuity always starts at the original hire date.','لحساب رصيد الإجازة فقط حتى آخر يوم. المكافأة تبدأ دائما من تاريخ التعيين الأصلي.');
+    for(const name of ['housing','transport','other'])el(name+'-help').textContent=leave?t('Monthly cash amount. Leave payment rules are under company policy.','القيمة النقدية الشهرية. قواعد صرفه أثناء الإجازة في إعدادات الشركة.'):t('Used in current-month salary, and in leave encashment only if selected. Not added to basic-salary gratuity.','يستخدم في راتب الشهر، وفي صرف رصيد الإجازة إذا اخترته. لا يضاف إلى مكافأة الأساسي.');
     form.querySelectorAll('.calc-step')[2].textContent=leave?'3':'2';
     showField('lastReturn',el('leaveBasis').value==='return');showField('balanceAsOf',el('leaveBasis').value==='opening');
     showField('customLeaveWage',el('leavePay').value==='custom');
@@ -37,16 +42,18 @@
     el('split-period').hidden=!split;el('salary-second').hidden=!split;el('month-salary-options').hidden=!el('includeMonthSalary').checked;
     el('includeMonthSalary').closest('label').querySelector('small').textContent=leave?
       t('Leave on 16 December = salary for 1–15 December. Includes basic pay and monthly cash allowances.','الإجازة من 16 ديسمبر = راتب 1–15 ديسمبر. يشمل الأساسي والبدلات النقدية الشهرية.'):
-      t('Salary from month start through the last working day, including monthly cash allowances.','راتب من بداية الشهر حتى آخر يوم عمل شاملا البدلات النقدية الشهرية.');
+      t('Salary from month start through the final employment day, including monthly cash allowances.','راتب من بداية الشهر حتى آخر يوم في الخدمة شاملا البدلات النقدية الشهرية.');
     el('housing-options').hidden=!leave;el('allowance-policy').hidden=!leave;el('exit-policy').hidden=leave;showField('paidLeaveMode',leave);
     for(const name of ['housing','transport','other']){showField(name+'Fixed',el(name+'Mode').value==='fixed');showField(name+'Fixed2',el(name+'Mode').value==='fixed');}
     showField('housingPaid2',el('housingAdvance').checked);
     for(const id of ['returnThreshold','advanceMethod','housingPaid'])showField(id,el('housingAdvance').checked);
-    showField('ticketValue',ticket!=='none');showField('ticketAllocation',ticket==='cash'&&leave);showField('ticketAnnualDays',ticket==='cash'&&leave&&el('ticketAllocation').value==='prorated');
-    showField('ticketUsedBefore',ticket==='cash');showField('ticketCompanyPeriod',ticket==='company'&&leave);showCheck('encashTicketOnExit',ticket==='cash'&&!leave);
+    const activeCash=ticket==='cash'&&(leave||el('encashTicketOnExit').checked);
+    showField('ticketValue',ticket==='company'||activeCash);showField('ticketAllocation',ticket==='cash'&&leave);showField('ticketAnnualDays',ticket==='cash'&&leave&&el('ticketAllocation').value==='prorated');
+    showField('ticketUsedBefore',activeCash);showField('ticketCompanyPeriod',ticket==='company'&&leave);showCheck('encashTicketOnExit',ticket==='cash'&&!leave);
     form.querySelector('label[for="ticketValue"]').textContent=ticket==='company'?t('Estimated price per company ticket (QAR)','السعر التقديري لكل تذكرة شركة (ر.ق)'):t('Annual cash ticket allowance (QAR)','بدل التذكرة النقدي السنوي (ر.ق)');
     for(const id of ['under5','after5'])showField(id,el('preset').value==='custom');
     form.querySelectorAll('[data-option-help]').forEach(h=>{const s=el(h.dataset.optionHelp);h.textContent=s.selectedOptions[0].dataset.help;});
+    if(!leave)el('preset-help').textContent+=t(' Used only for unused leave cash, not the gratuity rate.',' تستخدم لصرف رصيد الإجازة فقط، ولا تحدد معدل المكافأة.');
   }
   function clearResult(message) {
     lastResult=null;content.replaceChildren(node('p',message||empty,'calc-empty'));
@@ -61,7 +68,7 @@
   function meta(list,label,value){const row=node('div',undefined,'calc-meta-row');row.append(node('dt',label),node('dd',value));list.append(row);}
   function salaryNote(s){
     if(!s.calendarDays)return t('No salary days before departure in this month.','لا توجد أيام راتب قبل المغادرة في هذا الشهر.');
-    return `${days(s.paidDays)} · ${date(s.from)} – ${date(s.to)}${s.unpaidDays?' · '+t('Unpaid: ','دون أجر: ')+days(s.unpaidDays):''}${s.excludedDays?' · '+t('Prior salary / leave days excluded: ','أيام راتب سابقة / إجازة مستبعدة: ')+num(s.excludedDays):''}`;
+    return `${days(s.paidDays)} · ${date(s.from)} – ${date(s.to)}${s.payrollDays!==s.paidDays?' · '+t('Payroll units: ','أيام الراتب للحساب: ')+num(s.payrollDays):''}${s.unpaidDays?' · '+t('Unpaid: ','دون أجر: ')+days(s.unpaidDays):''}${s.excludedDays?' · '+t('Prior salary / leave days excluded: ','أيام راتب سابقة / إجازة مستبعدة: ')+num(s.excludedDays):''}`;
   }
   function render(r) {
     content.replaceChildren();lastResult=r;const d=r.inputs,leave=d.calculationMode==='leave',total=leave?r.plan.remainingPay:r.total;
@@ -87,7 +94,7 @@
         if(r.travels.length===2)line(t('Period '+(v.index+1)+' subtotal','صافي الفترة '+(v.index+1)),'',v.remainingPay,'calc-subtotal');
       }
     } else {
-      line(t('End-of-service gratuity','مكافأة نهاية الخدمة'),`${num(d.basic)} ÷ 30 × ${num(d.eosDays)} × ${num(r.years)}`,r.eos);
+      line(t('End-of-service gratuity','مكافأة نهاية الخدمة'),`${num(d.basic)} ÷ 30 × ${num(d.eosDays)} × (${num(r.serviceDays)} ÷ 365)`,r.eos);
       line(t('Unused annual leave','صرف رصيد الإجازة السنوية'),`${days(Math.max(0,r.annualBalance))} × ${money(r.leaveWage)} ÷ 30`,r.leaveValue);
       for(const [value,en,aa] of [[r.compValue,'Approved compensatory leave payout','صرف رصيد تعويضي معتمد'],[r.holidayCash,'Approved holiday cash','نقد عطلات معتمد'],[r.ticket.exitValue,'Approved cash ticket payout','بدل تذكرة نقدي معتمد']])if(value)line(t(en,aa),t('Approved optional payment','صرف اختياري معتمد'),value);
       salary(r.currentMonthSalary);
@@ -97,12 +104,13 @@
       if(v.companyProvidesTicket)note(t('Period '+(v.index+1)+': company provides the ticket. ','الفترة '+(v.index+1)+': الشركة توفر التذكرة. ')+(v.companyTicketCost?t('Estimated price: ','السعر التقديري: ')+money(v.companyTicketCost)+'. ':'')+t('Outside the employee cash total.','خارج إجمالي النقد المستحق للموظف.'));
       if(v.unpaidDays>0)note(t('Period '+(v.index+1)+': ','الفترة '+(v.index+1)+': ')+days(v.unpaidDays)+t(' exceed the available paid balance. Allowances follow the selected policy.',' تزيد على الرصيد المدفوع المتاح. البدلات حسب السياسة المختارة.'),true);
     }
-    if(!leave&&d.ticketMode==='company')note(t('The company arranges the ticket separately; no ticket price is included in employee cash.','توفر الشركة التذكرة بشكل منفصل؛ لا يضاف سعرها إلى نقد الموظف.'));
+    if(!leave&&d.ticketMode==='company')note(t('The company arranges the ticket separately; outside employee cash.','توفر الشركة التذكرة بشكل منفصل؛ خارج نقد الموظف.')+(d.ticketValue?' '+t('Estimated price: ','السعر التقديري: ')+money(d.ticketValue):''));
     if(r.annualBalance<0)note(t('Negative annual balance needs review; no automatic gratuity deduction.','الرصيد السنوي السالب يحتاج مراجعة؛ لا يخصم تلقائيا من المكافأة.'),true);
     if(d.pendingHolidayDays>0&&d.holidaySettlement==='review')note(t('Worked-holiday days are for review only; no cash or extra leave has been added.','أيام العمل بالعطلات للمراجعة فقط؛ لم يضف عنها نقد أو رصيد.'),true);
     if(!r.eligible)note(t('Under one year: gratuity is zero and projected leave eligibility needs review.','أقل من سنة: المكافأة صفر، وأهلية الإجازة التقديرية تحتاج مراجعة.'),true);
     const detail=node('details',undefined,'calc-option calc-calculation-details');detail.append(node('summary',t('Calculation details','تفاصيل الحساب')));const inner=node('div',undefined,'calc-option-body'),dl=node('dl',undefined,'calc-metadata');
-    meta(dl,t('Accrual cycle (end excluded)','دورة الاستحقاق (دون يوم النهاية)'),date(r.from)+' – '+date(r.through));meta(dl,t('Annual leave earned this cycle','الإجازة المستحقة بهذه الدورة'),days(r.earned));
+    meta(dl,leave?t('Accrual cycle (departure excluded)','دورة الاستحقاق (دون يوم المغادرة)'):t('Accrual cycle (final day included)','دورة الاستحقاق (شاملة آخر يوم)'),date(r.from)+' – '+date(leave?r.through:d.asOf));meta(dl,t('Annual leave earned this cycle','الإجازة المستحقة بهذه الدورة'),days(r.earned));
+    if(!leave){meta(dl,t('Continuous service, final day included','الخدمة المستمرة شاملة آخر يوم'),date(d.serviceStart)+' – '+date(d.asOf));meta(dl,t('EOS rate · basic-salary days per year','معدل المكافأة · أيام من الأساسي لكل سنة'),num(d.eosDays));}
     meta(dl,t('Balance calculation','معادلة الرصيد'),`${num(d.opening)} + ${num(r.earned)} − ${num(d.taken)} + (${num(d.adjustment)})`);
     if(r.compDays)meta(dl,t('Approved compensatory days','الأيام التعويضية المعتمدة'),days(r.compDays));
     meta(dl,t('Daily cash salary divisor','قسمة الراتب النقدي اليومي'),d.payBasis==='30'?t('30 days','30 يوما'):t('Actual days in each month','عدد أيام كل شهر الفعلي'));
@@ -114,7 +122,7 @@
       if(d.ticketMode==='cash'&&d.ticketAllocation==='prorated')meta(dl,t('Period '+(v.index+1)+' · ticket proration before cap','الفترة '+(v.index+1)+' · توزيع التذكرة قبل الحد'),`${money(d.ticketValue)} × ${num(v.annualPaidDays)} ÷ ${num(r.ticket.days)}`);
     }
     for(const s of [...r.travels.map(v=>v.monthSalary),r.currentMonthSalary].filter(Boolean)){
-      meta(dl,t('Working-month salary','راتب شهر العمل'),`${money(s.grossMonthly)} ÷ ${num(s.divisor)} × ${num(s.paidDays)}${s.housingExcluded?' − '+money(s.housingExcluded)+t(' prepaid housing',' سكن مغطى مقدما'):''}`);
+      meta(dl,t('Working-month salary','راتب شهر العمل'),`${money(s.grossMonthly)} ÷ ${num(s.divisor)} × ${num(s.payrollDays)}${s.housingExcluded?' − '+money(s.housingExcluded)+t(' prepaid housing',' سكن مغطى مقدما'):''}`);
       if(s.excludedDays)meta(dl,t('Previously counted / leave dates excluded','أيام سابقة / إجازة استبعدت'),days(s.excludedDays));
     }
     inner.append(dl);detail.append(inner);content.append(detail);content.append(node('p',t('Estimate only. Check the contract, approvals and previous payments before disbursement.','تقدير استرشادي. راجع العقد والاعتمادات والمدفوعات السابقة قبل الصرف.'),'calc-help calc-report-note'));
@@ -125,8 +133,10 @@
     if(!lastResult)return;const r=lastResult,d=r.inputs,leave=d.calculationMode==='leave';printRoot.replaceChildren();
     printRoot.append(node('p',t('Hossam Ali · HR tools · Qatar','حسام علي · أدوات الموارد البشرية · قطر'),'calc-print-brand'),node('h1',leave?t('Leave settlement','كشف تسوية الإجازة'):t('End-of-service settlement','كشف تسوية نهاية الخدمة')));
     printRoot.append(node('p',t('Prepared: ','تاريخ الإعداد: ')+new Intl.DateTimeFormat(ar?'ar-QA':'en-GB',{dateStyle:'long',timeZone:'Asia/Qatar'}).format(new Date()),'calc-help'));
-    const dl=node('dl',undefined,'calc-print-meta');meta(dl,t('Hire date','تاريخ التعيين'),date(d.serviceStart));meta(dl,t('Monthly cash salary','الراتب النقدي الشهري'),money(d.basic+d.housing+d.transport+d.other));meta(dl,t('Leave accrual cycle','دورة استحقاق الإجازة'),date(r.from)+' – '+date(r.through));
-    if(leave)for(const v of r.travels)meta(dl,t('Leave '+(v.index+1)+' · departure / return','الإجازة '+(v.index+1)+' · المغادرة / العودة'),date(v.start)+' / '+date(v.end));else meta(dl,t('Last working day','آخر يوم عمل'),date(d.asOf));
+    const dl=node('dl',undefined,'calc-print-meta');meta(dl,t('Hire date','تاريخ التعيين'),date(d.serviceStart));meta(dl,t('Monthly cash salary','الراتب النقدي الشهري'),money(d.basic+d.housing+d.transport+d.other));meta(dl,leave?t('Leave cycle · departure excluded','دورة الإجازة · دون يوم المغادرة'):t('Leave cycle · final day included','دورة الإجازة · شاملة آخر يوم'),date(r.from)+' – '+date(leave?r.through:d.asOf));
+    meta(dl,t('Annual leave days · under / from 5 years','أيام الإجازة السنوية · قبل / من خمس سنوات'),`${num(d.under5)} / ${num(d.after5)}${d.extraDays?' + '+num(d.extraDays):''}`);
+    if(!leave){meta(dl,t('EOS days per year on last basic salary','أيام المكافأة لكل سنة على آخر أساسي'),num(d.eosDays));meta(dl,t('Continuous service · final day included','الخدمة المستمرة · شاملة آخر يوم'),days(r.serviceDays)+' ÷ 365');}
+    if(leave)for(const v of r.travels)meta(dl,t('Leave '+(v.index+1)+' · departure / return','الإجازة '+(v.index+1)+' · المغادرة / العودة'),date(v.start)+' / '+date(v.end));else meta(dl,t('Final day of employment','آخر يوم في الخدمة'),date(d.asOf));
     printRoot.append(dl,content.querySelector('table').cloneNode(true));
     content.querySelectorAll('.calc-report-note').forEach(n=>printRoot.append(n.cloneNode(true)));
   }
